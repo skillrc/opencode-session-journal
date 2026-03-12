@@ -85,27 +85,22 @@ Create markdown with this exact structure:
 
 ### 3. Calculate Directory Path
 
-Use current date/time to build path:
+Use the path generation script:
 
 ```bash
-YEAR=$(date +%Y)
-MONTH=$(date +%m)
-MONTH_NAME=$(date +%B)
-DAY=$(date +%d)
-WEEKDAY=$(date +%A)
-TIMESTAMP=$(date +%s)
-TIME=$(date +%H:%M:%S)
+# Determine skill installation directory
+if [ -d "$HOME/.opencode/skills/opencode-session-journal" ]; then
+    SKILL_DIR="$HOME/.opencode/skills/opencode-session-journal"
+elif [ -d "$HOME/.config/opencode/skills/opencode-session-journal" ]; then
+    SKILL_DIR="$HOME/.config/opencode/skills/opencode-session-journal"
+else
+    echo "Error: opencode-session-journal skill not found"
+    exit 1
+fi
 
-# Calculate zodiac (1900 = Rat)
-# Bash arrays with () syntax start at index 1, so add 1 to the result
-ZODIAC_INDEX=$(( (($YEAR - 1900) % 12) + 1 ))
-ZODIACS=(Rat Ox Tiger Rabbit Dragon Snake Horse Goat Monkey Rooster Dog Pig)
-ZODIAC=${ZODIACS[$ZODIAC_INDEX]}
-
-# Build path (use global directory)
-JOURNAL_BASE="$HOME/.opencode/session-journals"
-DIR="$JOURNAL_BASE/year-${YEAR}-${ZODIAC}/month-${MONTH}-${MONTH_NAME}/day-${DAY}-${WEEKDAY}"
-FILE="journal-${TIMESTAMP}-${TIME}.md"
+# Generate journal file path using script
+FILEPATH=$("$SKILL_DIR/scripts/generate-journal-path.sh")
+DIR=$(dirname "$FILEPATH")
 ```
 
 ### 4. Save File
@@ -115,7 +110,7 @@ Create directory if needed:
 mkdir -p "$DIR"
 ```
 
-Write journal content to: `$DIR/$FILE`
+Write journal content to: `$FILEPATH`
 
 ### 5. Confirm Save
 

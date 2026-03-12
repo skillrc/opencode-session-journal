@@ -28,9 +28,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$OPENCODE_DIR/skills"
 mkdir -p "$OPENCODE_DIR/commands"
 
-# Copy skill
+# Copy skill (exclude .git, tests, examples)
 echo "→ Installing skill..."
-cp -r "$SCRIPT_DIR" "$OPENCODE_DIR/skills/opencode-session-journal"
+rsync -a --exclude='.git' --exclude='tests' --exclude='examples' --exclude='.opencode' \
+    "$SCRIPT_DIR/" "$OPENCODE_DIR/skills/opencode-session-journal/"
 
 # Copy commands
 echo "→ Installing commands..."

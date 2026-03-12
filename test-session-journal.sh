@@ -64,12 +64,12 @@ else
     fail "Load command not found"
 fi
 
-# Test 3: Commands use global path
-test_header "Test 3: Commands use global path (not relative)"
-if grep -q '\$HOME/.opencode/session-journals' "$HOME/.config/opencode/commands/session-journal-save.md"; then
-    pass "Save command uses global path"
+# Test 3: Commands use script-based path generation
+test_header "Test 3: Commands use script-based path generation"
+if grep -q 'generate-journal-path.sh' "$HOME/.config/opencode/commands/session-journal-save.md"; then
+    pass "Save command uses script-based path generation"
 else
-    fail "Save command uses relative path"
+    fail "Save command does not use script-based path generation"
 fi
 
 if grep -q '\$HOME/.opencode/session-journals' "$HOME/.config/opencode/commands/session-journal-load.md"; then
