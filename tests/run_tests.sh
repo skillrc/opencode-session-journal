@@ -73,6 +73,7 @@ TEST_SUITES=(
     "$SCRIPT_DIR/test_save_command.sh:Save Command"
     "$SCRIPT_DIR/test_load_command.sh:Load Command"
     "$SCRIPT_DIR/test_e2e_workflows.sh:E2E Workflows"
+    "$SCRIPT_DIR/test_runtime_mvp.sh:Runtime MVP"
 )
 
 FAILED_SUITES=()

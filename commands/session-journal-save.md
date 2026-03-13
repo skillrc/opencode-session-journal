@@ -1,144 +1,176 @@
-# Save Session Journal
+---
+name: session-journal-save
+description: Save current session with AI-generated metadata
+command: true
+---
 
-Generate and save current session progress as structured markdown.
+# Session Journal Save
 
-## Execute These Steps
+Save the current session as a complete journal generated from the current conversation context.
 
-### 1. Collect Session Information
+## Usage
 
-Gather from current session:
-- Session ID
-- Start time
-- User's original request
-- All actions taken (with timestamps)
-- Problems encountered and solutions
-- Key decisions made
-- Files modified
-- Current state
-- Pending tasks
+```bash
+/session-journal-save
+/session-journal-save "User note"
+/session-journal-save --add-tags "important,review"
+```
 
-### 2. Generate Journal Content
+## Options
 
-Create markdown with this exact structure:
+- `"User note"` - Optional note to add to the journal
+- `--add-tags "tag1,tag2"` - Add user-defined tags
 
-```markdown
-# Session Journal - [session-id]
+## What It Does
 
-**Start Time**: YYYY-MM-DD HH:MM:SS
-**Task**: [User request]
+1. Uses the current AI session context directly
+2. Generates complete journal content and metadata in the same conversation
+3. Writes the finished markdown to `.opencode/session-journals/` with org-roam structure
+4. Updates search indexes after the file is written
+
+## Execution Model
+
+This command must be executed in-context.
+
+The current AI session is responsible for:
+- analyzing the current conversation
+- generating tags, topics, categories, patterns, and preferences
+- writing the full timeline, decisions, summary, and next steps
+
+Scripts are responsible only for:
+- generating the journal path
+- writing the provided markdown to disk
+- updating indexes
+
+The save command must not rely on a shell script to guess session content.
+
+## In-Context Workflow
+
+When this command is used, the assistant should follow this exact sequence:
+
+1. Review the current conversation and summarize the real work completed.
+2. Generate a full journal in markdown with YAML frontmatter.
+3. Include `content_complete: true` in the frontmatter.
+4. Include real content for:
+   - task
+   - session timeline
+   - completed work
+   - problems solved
+   - key decisions
+   - current state
+   - pending tasks
+   - important files
+   - recommendations for next session
+5. Send the complete markdown to `scripts/write-journal.sh` through stdin.
+6. Report the saved file path back to the user.
+
+## What Must Never Happen
+
+- Do not leave placeholders like `[To be filled during session]`
+- Do not write empty timeline sections
+- Do not fabricate session content from shell history alone
+- Do not let incomplete journals enter the knowledge graph or profile system
+
+## Required Output Structure
+
+The saved journal must contain:
+
+- YAML frontmatter
+- `content_complete: true`
+- complete task description
+- timeline of work performed
+- problems solved
+- key decisions
+- current state
+- pending tasks
+- important files
+- recommendations for next session
+
+## Output
+
+```
+✅ Journal saved: .opencode/session-journals/year-2026-Horse/month-03-March/day-13-Friday/journal-1741234567-14:30:00.md
+
+🤖 AI-generated metadata:
+   Tags: java, spring-boot, webank-sdk, integration
+   Topic: backend-integration
+   Category: backend feature-implementation (complex)
+   Confidence: 0.88
+
+💡 Next steps:
+   - View: cat "[journal-file]"
+   - Load: /session-journal-load
+   - Learn: /session-journal-learn
+   - Profile: /session-journal-profile
+```
+
+## Save Procedure
+
+1. Generate the complete journal markdown in the current session.
+2. Ensure the frontmatter contains `content_complete: true`.
+3. Get a destination path from `scripts/generate-journal-path.sh`.
+4. Pipe the markdown into `scripts/write-journal.sh`.
+5. Let the writer update indexes automatically.
+
+## Writer Example
+
+```bash
+cat <<'EOF' | ${CLAUDE_PLUGIN_ROOT}/skills/opencode-session-journal/scripts/write-journal.sh
+---
+session_id: ses_example
+datetime: 2026-03-13 22:10:00
+content_complete: true
+tags:
+  auto: [example]
+  user: []
+  confidence: 0.9
+topics:
+  primary: session-memory
+  secondary: []
+  confidence: 0.9
+categories:
+  domain: tooling
+  type: refactor
+  complexity: medium
+  phase: implementation
+summary: |
+  Example complete journal.
+patterns_detected: []
+preferences_observed: []
+links:
+  related_sessions: []
+  related_skills: []
+  related_files: []
+backlinks: []
+learned: false
+profiled: false
+last_accessed: 2026-03-13 22:10:00
+user_note: ""
+user_rating: null
+user_flags: []
+---
+
+# Session Journal - ses_example
+
+**Start Time**: 2026-03-13 22:10:00
+**Task**: Example task
 
 ---
 
-## YYYY-MM-DD HH:MM:SS
-### 🎯 Started Task: [Task name]
-- **User Request**: [Original request]
-- **Initial State**: [State description]
-- **Plan**: [Execution plan]
+## Session Timeline
 
-## YYYY-MM-DD HH:MM:SS
-### 🔧 Action: [Action description]
-- **Tools**: [Tools used]
-- **Findings**: [Discovered information]
-- **Decision**: [Decision made]
-
-## YYYY-MM-DD HH:MM:SS
-### ⚠️ Problem: [Problem description]
-- **Error**: [Error message]
-- **Analysis**: [Problem analysis]
-- **Solution**: [Solution applied]
-
-## YYYY-MM-DD HH:MM:SS
-### ✅ Completed: [Completed work]
-- **Result**: [Work result]
-- **Verification**: [Verification method]
-- **Duration**: [Time spent]
+### ✅ Completed
+- Example content
 
 ---
 
 ## 📊 Session Summary
 
 ### Completed Work
-1. ✅ [Work item 1]
-2. ✅ [Work item 2]
-
-### Problems Solved
-1. ⚠️ [Problem 1] → [Solution]
-2. ⚠️ [Problem 2] → [Solution]
-
-### Key Decisions
-- [Decision 1]: [Rationale]
-- [Decision 2]: [Rationale]
-
-### Current State
-- [State description]
-
-### Pending Tasks
-- [ ] [Task 1]
-- [ ] [Task 2]
-
-### Important Files
-- [File path] - [Purpose]
-
-### Recommendations for Next Session
-[Recommendation content]
+1. ✅ Example
+EOF
 ```
 
-### 3. Calculate Directory Path
+## Model Usage
 
-Use the path generation script:
-
-```bash
-# Determine skill installation directory
-if [ -d "$HOME/.opencode/skills/opencode-session-journal" ]; then
-    SKILL_DIR="$HOME/.opencode/skills/opencode-session-journal"
-elif [ -d "$HOME/.config/opencode/skills/opencode-session-journal" ]; then
-    SKILL_DIR="$HOME/.config/opencode/skills/opencode-session-journal"
-else
-    echo "Error: opencode-session-journal skill not found"
-    exit 1
-fi
-
-# Generate journal file path using script
-FILEPATH=$("$SKILL_DIR/scripts/generate-journal-path.sh")
-DIR=$(dirname "$FILEPATH")
-```
-
-### 4. Save File
-
-Create directory if needed:
-```bash
-mkdir -p "$DIR"
-```
-
-Write journal content to: `$FILEPATH`
-
-### 5. Confirm Save
-
-Display:
-```
-✅ Session journal saved
-
-File: [full path]
-Size: [file size]
-
-💡 Use /session-journal-load in next session to restore context
-```
-
-## Examples
-
-**Save with note:**
-```
-/session-journal-save "Completed WeBank SDK integration"
-```
-
-**Save without note:**
-```
-/session-journal-save
-```
-
-## Notes
-
-- Include ALL session context: actions, decisions, problems, solutions
-- Use exact markdown format shown above
-- Create directories automatically if they don't exist
-- Journals contain sensitive information - protect accordingly
+Uses the current session model because the current session generates the journal directly.

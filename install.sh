@@ -37,11 +37,58 @@ rsync -a --exclude='.git' --exclude='tests' --exclude='examples' --exclude='.ope
 echo "→ Installing commands..."
 cp "$SCRIPT_DIR/commands/session-journal-save.md" "$OPENCODE_DIR/commands/"
 cp "$SCRIPT_DIR/commands/session-journal-load.md" "$OPENCODE_DIR/commands/"
+if [ -f "$SCRIPT_DIR/commands/session-journal-load.sh" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-load.sh" "$OPENCODE_DIR/commands/"
+  chmod +x "$OPENCODE_DIR/commands/session-journal-load.sh"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-save.sh" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-save.sh" "$OPENCODE_DIR/commands/"
+  chmod +x "$OPENCODE_DIR/commands/session-journal-save.sh"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-profile.sh" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-profile.sh" "$OPENCODE_DIR/commands/"
+  chmod +x "$OPENCODE_DIR/commands/session-journal-profile.sh"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-search.sh" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-search.sh" "$OPENCODE_DIR/commands/"
+  chmod +x "$OPENCODE_DIR/commands/session-journal-search.sh"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-profile.md" ]; then
+    cp "$SCRIPT_DIR/commands/session-journal-profile.md" "$OPENCODE_DIR/commands/"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-search.md" ]; then
+    cp "$SCRIPT_DIR/commands/session-journal-search.md" "$OPENCODE_DIR/commands/"
+fi
+# Copy learn command if present
+if [ -f "$SCRIPT_DIR/commands/session-journal-learn.md" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-learn.md" "$OPENCODE_DIR/commands/"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-verify.md" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-verify.md" "$OPENCODE_DIR/commands/"
+fi
+# Additional commands: copy profile and search if present (single block)
+if [ -f "$SCRIPT_DIR/commands/session-journal-profile.md" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-profile.md" "$OPENCODE_DIR/commands/"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-profile.sh" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-profile.sh" "$OPENCODE_DIR/commands/"
+  chmod +x "$OPENCODE_DIR/commands/session-journal-profile.sh"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-search.md" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-search.md" "$OPENCODE_DIR/commands/"
+fi
+if [ -f "$SCRIPT_DIR/commands/session-journal-search.sh" ]; then
+  cp "$SCRIPT_DIR/commands/session-journal-search.sh" "$OPENCODE_DIR/commands/"
+  chmod +x "$OPENCODE_DIR/commands/session-journal-search.sh"
+fi
 
 echo -e "${GREEN}✓ Installation complete!${NC}"
 echo ""
 echo "Available commands:"
 echo "  /session-journal-save  - Save current session"
 echo "  /session-journal-load  - Load previous session"
+echo "  /session-journal-profile - Build or view user profile"
+echo "  /session-journal-search - Search saved journals"
+echo "  /session-journal-learn - Extract reusable learnings"
 echo ""
 echo "Try: /session-journal-save \"Your first journal entry\""

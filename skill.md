@@ -5,7 +5,7 @@ description: Save session progress for continuation in future sessions, or load 
 
 # OpenCode Session Journal
 
-Session logging system that records AI actions and decisions in structured markdown format.
+Session memory system that records complete AI session context in structured markdown format.
 
 ## When to Use
 
@@ -34,6 +34,14 @@ Session logging system that records AI actions and decisions in structured markd
 | `/session-journal-load` | Load most recent | `/session-journal-load` |
 | `/session-journal-load DATE` | Load specific date | `/session-journal-load 2026-03-09` |
 | `/session-journal-load list` | List all journals | `/session-journal-load list` |
+
+## Important
+
+`/session-journal-save` must be executed in the current AI conversation context.
+It should not depend on an external shell script to reconstruct the session body.
+The current session generates the full journal content, and scripts only handle deterministic file writing and indexing.
+
+Complete journals must include `content_complete: true`. Incomplete journals are not valid memory artifacts.
 
 ## Log Structure
 

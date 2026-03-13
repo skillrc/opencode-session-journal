@@ -1,59 +1,40 @@
-# Load Session Journal
+---
+name: session-journal-load
+description: Load and display a saved complete session journal
+command: true
+---
+
+# Session Journal Load
 
 Load and display previously saved session journals.
 
-## Execute These Steps
-
-### 1. Determine Target
-
-If user provided argument:
-- `list` → Find all journals, display list, STOP
-- Date (YYYY-MM-DD, today, yesterday) → Find journals for that date
-- Session ID → Find journal with that session ID
-- No argument → Find most recent journal
-
-### 2. Find Journal Files
-
-Run these commands:
+## Usage
 
 ```bash
-# Set journal directory (use global path)
-JOURNAL_DIR="$HOME/.opencode/session-journals"
-
-# Most recent journal
-find "$JOURNAL_DIR" -name "*.md" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-
-
-# Specific date (example: 2026-03-09)
-find "$JOURNAL_DIR" -path "*/day-09-*/*.md" -name "*.md" 2>/dev/null
-
-# List all journals
-find "$JOURNAL_DIR" -name "*.md" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn
+/session-journal-load
+/session-journal-load list
+/session-journal-load 2026-03-09
+/session-journal-load ses_abc123
 ```
 
-### 3. Read and Display Journal
+## Implementation
 
-Read the journal file and extract key sections:
-- Session ID and start time from header
-- Completed work items (lines with ✅)
-- Problems solved (lines with ⚠️)
-- Key decisions
-- Important files
-- Current state
-- Pending tasks
-- Recommendations
+```bash
+#!/bin/bash
+${CLAUDE_PLUGIN_ROOT}/skills/opencode-session-journal/scripts/load-journal.sh "$@"
+```
 
-Display formatted summary with the extracted information.
+## What It Does
 
-### 4. Load Context
+1. Resolves the target journal by latest, date, session id, or list mode
+2. Reads the matching journal file
+3. Prints the full journal so the current AI session can absorb context
+4. Allows the assistant to continue from the saved state
 
-Read the FULL journal content into context. This allows you to understand:
-- What was done in previous session
-- What problems were encountered
-- What decisions were made
-- What files are important
-- What needs to be done next
+## Important
 
-After loading, confirm: "✅ Journal loaded. I understand the previous work and can continue from: [brief summary of current state]"
+Prefer journals with `content_complete: true` when continuing serious work.
+If multiple journals match a date, review the most relevant one before continuing.
 
 ## Examples
 
