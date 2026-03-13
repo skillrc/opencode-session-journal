@@ -2,339 +2,472 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![OpenCode Compatible](https://img.shields.io/badge/OpenCode-Compatible-blue.svg)](https://opencode.ai)
-[![Tests](https://img.shields.io/badge/Tests-42%20passing-brightgreen.svg)](tests/TEST_REPORT.md)
-[![Coverage](https://img.shields.io/badge/Coverage-95%25+-brightgreen.svg)](tests/TEST_REPORT.md)
 
-**An in-context session memory system for OpenCode - manual control, complete journals, markdown format**
+```
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   ██████  ███████ ███████ ███████ ██   ██ ███    ██ ███████     ║
+║   ██   ██ ██      ██      ██      ██   ██ ████   ██ ██          ║
+║   ██████  █████   ███████ ███████ ███████ ██ ██  ██ █████       ║
+║   ██   ██ ██           ██      ██ ██   ██ ██  ██ ██ ██          ║
+║   ██   ██ ███████ ███████ ███████ ██   ██ ██   ████ ███████     ║
+║                                                                  ║
+║        ██████  ███████ ███████ ██   ██ ███    ██ ███████        ║
+║        ██   ██ ██      ██      ██   ██ ████   ██ ██             ║
+║        ██████  █████   ███████ ███████ ██ ██  ██ █████          ║
+║        ██   ██ ██           ██ ██   ██ ██  ██ ██ ██             ║
+║        ██   ██ ███████ ███████ ██   ██ ██   ████ ███████        ║
+║                                                                  ║
+║              ██ ████████  ██████  ██    ██ ██████  ██            ║
+║              ██    ██    ██    ██ ██    ██ ██   ██ ██            ║
+║              ██    ██    ██    ██ ██    ██ ██████  ██            ║
+║              ██    ██    ██    ██ ██    ██ ██   ██ ██            ║
+║              ██    ██     ██████   ██████  ██   ██ ███████       ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+**An in-context session memory system for OpenCode**
+
+*Manual control · Complete journals · Markdown format · No databases*
 
 ---
 
-## What is OpenCode Session Journal?
+## 📋 Command Reference
 
-OpenCode Session Journal is a lightweight skill that provides **session persistence and memory extraction** through save, load, profile, search, and learn workflows.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  COMMAND                    │  PURPOSE                           │
+├─────────────────────────────────────────────────────────────────┤
+│  /session-journal-save      │  Save current session (in-context) │
+│  /session-journal-load      │  Load previous session context     │
+│  /session-journal-profile   │  Build user profile from journals  │
+│  /session-journal-search    │  Search journals by tags/topics    │
+│  /session-journal-learn     │  Extract reusable learnings        │
+│  /session-journal-verify    │  Validate journal integrity        │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-- `/session-journal-save` - Save your current session progress as structured markdown
-- `/session-journal-load` - Restore session context in a new session
-- `/session-journal-profile` - Build and inspect a user profile from complete journals
-- `/session-journal-search` - Search saved journals by tags, topics, dates, and content
-- `/session-journal-learn` - Extract reusable learnings from complete journals
-
-### Why Use This?
-
-**Problem**: OpenCode loses conversation history when sessions close. Multi-day projects become impractical because you must rebuild context from scratch every time.
-
-**Solution**: Session Journal saves your session state as human-readable markdown logs with org-roam-inspired directory structure, making it easy to continue work across sessions.
-
-## Key Features
-
-✅ **In-context save flow** - Current AI session generates complete content  
-✅ **Human-readable format** - Structured markdown logs you can read and edit  
-✅ **Manual control** - You decide when to save, load, profile, and learn  
-✅ **Local knowledge graph** - JSON indexes for tags/topics without a database  
-✅ **Org-roam structure** - Time-organized with `year-YYYY-Zodiac/month-MM-MonthName/day-DD-Weekday/` format
-
-## Comparison with Similar Tools
-
-| Feature | Session Journal | brewcode | subcog | claude-code-soul |
-|---------|----------------|----------|--------|------------------|
-| **Commands** | 2 | 15+ | 10+ | Automatic |
-| **Setup** | Zero | Complex | Database required | Git hooks |
-| **Control** | Manual | Manual | Manual | Automatic |
-| **Format** | Markdown | JSON + DB | SQLite | Markdown |
-| **Dependencies** | None | Node.js, DB | Python, SQLite | Git |
-| **GitHub Stars** | New | 15 | 17 | 5 |
-| **Philosophy** | Simplest tool | Feature-rich | Data-driven | Hands-off |
-
-**Why Session Journal?**
-- **Simplest**: Just 2 commands vs 10-15+ in alternatives
-- **Zero setup**: No databases, no complex configuration
-- **Manual control**: You decide when to save, not automatic triggers
-- **Human-readable**: Plain markdown, not JSON or database formats
-
-## Quick Start (2 Minutes)
-
-### Installation
-
-If you are working with a local clone of this repository, run:
+### Quick Usage Examples
 
 ```bash
+# Save current session (AI generates complete content in-context)
+/session-journal-save "Implemented JWT authentication"
+
+# Load previous session
+/session-journal-load              # Load most recent
+/session-journal-load 2026-03-14   # Load by date
+/session-journal-load list         # List all journals
+
+# Search your memory
+/session-journal-search --tags "auth,security"
+/session-journal-search --topic "backend"
+
+# Build your profile
+/session-journal-profile
+/session-journal-profile --show    # View current profile
+
+# Extract learnings
+/session-journal-learn --dry-run   # Preview
+/session-journal-learn             # Create artifacts
+
+# Validate integrity
+/session-journal-verify
+```
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        USER INTERACTION LAYER                        │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌──────────────┐  │
+│  │   save      │ │   load      │ │   profile   │ │    learn     │  │
+│  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └──────┬───────┘  │
+└─────────┼───────────────┼───────────────┼───────────────┼──────────┘
+          │               │               │               │
+          ▼               ▼               ▼               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     IN-CONTEXT GENERATION (AI)                       │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │  Current AI session analyzes conversation and generates:     │    │
+│  │  • Complete journal markdown with YAML frontmatter           │    │
+│  │  • Tags, topics, categories, patterns, preferences           │    │
+│  │  • Timeline, decisions, problems, state, recommendations     │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      DETERMINISTIC LAYER (Scripts)                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │
+│  │ write-journal│  │ load-journal │  │update-kg     │               │
+│  │   -path gen  │  │   -list      │  │ -index tags  │               │
+│  │   -validate  │  │   -by date   │  │ -index topics│               │
+│  │   -atomic    │  │   -by id     │  │ -links       │               │
+│  └──────────────┘  └──────────────┘  └──────────────┘               │
+└─────────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                           STORAGE LAYER                              │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  ~/.opencode/session-journals/                                 │  │
+│  │  year-2026-Horse/month-03-March/day-14-Saturday/              │  │
+│  │  └── journal-{timestamp}-{time}.md                            │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  ~/.opencode/knowledge-graph/                                  │  │
+│  │  ├── tags.json    { "auth": ["journal-1.md", ...] }          │  │
+│  │  ├── topics.json  { "backend": ["journal-1.md", ...] }       │  │
+│  │  └── links.json   { "journal-1.md": { ... } }                │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  ~/.opencode/profile/                                          │  │
+│  │  └── user-profile.yaml                                         │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  ~/.opencode/learned/                                          │  │
+│  │  └── journal-{id}-learning.md                                  │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📁 Directory Structure
+
+```
+~/.opencode/
+├── session-journals/                    # Your complete session memories
+│   └── year-YYYY-Zodiac/
+│       └── month-MM-MonthName/
+│           └── day-DD-Weekday/
+│               └── journal-{ts}-{time}.md
+│
+├── knowledge-graph/                     # Fast search indexes
+│   ├── tags.json
+│   ├── topics.json
+│   └── links.json
+│
+├── profile/                             # Your evolving user profile
+│   ├── user-profile.yaml
+│   └── changelog/
+│
+└── learned/                             # Extracted reusable skills
+    └── journal-{id}-learning.md
+```
+
+---
+
+## 🔄 Complete Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         SESSION LIFECYCLE                            │
+└─────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────┐
+    │   START     │
+    │  Session    │
+    └──────┬──────┘
+           │
+           ▼
+    ┌─────────────┐
+    │    WORK     │◄──────────────────────────────────────┐
+    │  (coding,   │                                       │
+    │  decisions) │                                       │
+    └──────┬──────┘                                       │
+           │                                               │
+           ▼                                               │
+    ┌─────────────┐     ┌─────────────────────────────┐   │
+    │   READY     │────►│  /session-journal-save      │   │
+    │   TO SAVE   │     │                             │   │
+    └─────────────┘     │  AI generates in-context:   │   │
+                        │  • Complete timeline        │   │
+                        │  • Tags & topics            │   │
+                        │  • Decisions & state        │   │
+                        │  • content_complete: true   │   │
+                        └──────────────┬──────────────┘   │
+                                       │                  │
+                                       ▼                  │
+                        ┌─────────────────────────────┐   │
+                        │   write-journal.sh          │   │
+                        │   • Validate completeness   │   │
+                        │   • Atomic write            │   │
+                        │   • Update KG indexes       │   │
+                        └──────────────┬──────────────┘   │
+                                       │                  │
+                                       ▼                  │
+                        ┌─────────────────────────────┐   │
+                        │   SAVED JOURNAL             │   │
+                        │   (source of truth)         │   │
+                        └──────────────┬──────────────┘   │
+                                       │                  │
+           ┌───────────────────────────┼──────────────────┘
+           │                           │
+           ▼                           ▼
+┌─────────────────────┐    ┌─────────────────────┐
+│   NEXT SESSION      │    │   MEMORY LAYERS     │
+│                     │    │                     │
+│  /session-journal-  │    │  ┌───────────────┐  │
+│  load               │◄───┼──┤ Profile       │  │
+│                     │    │  │ (patterns)    │  │
+│  Context restored   │    │  └───────────────┘  │
+│  Continue work      │    │  ┌───────────────┐  │
+│        │            │    │  │ Learned       │  │
+│        └────────────┼────┼──┤ (skills)      │  │
+│                     │    │  └───────────────┘  │
+│  /session-journal-  │    │  ┌───────────────┐  │
+│  save               │    │  │ KG Index      │  │
+│        │            │    │  │ (search)      │  │
+│        └────────────┼────┘  └───────────────┘  │
+│                     │                           │
+└─────────────────────┘                           │
+                                                  │
+┌─────────────────────────────────────────────────┘
+│
+│  /session-journal-verify    → Check integrity
+│  /session-journal-search    → Find past work
+│  /session-journal-profile   → Update user model
+│  /session-journal-learn     → Extract patterns
+│
+└──────────────────────────────────────────────────► (cycle continues)
+```
+
+---
+
+## 🎯 Key Principles
+
+### 1. In-Context Generation
+```
+❌ WRONG: Shell script guesses session content from history
+✅ RIGHT: Current AI session generates complete journal directly
+```
+
+### 2. Content Completeness Gate
+```yaml
+# Every valid journal MUST have:
+content_complete: true
+
+# Without this flag:
+- ❌ Cannot be indexed in knowledge graph
+- ❌ Cannot be used for profile building
+- ❌ Cannot be used for learning extraction
+```
+
+### 3. Deterministic Scripts
+```
+AI Layer:    Understanding, generation, synthesis
+             ↓ (pipes complete content)
+Script Layer: Validation, atomic write, indexing
+             ↓ (deterministic operations only)
+Storage:      Files, indexes, profiles
+```
+
+---
+
+## 🛠️ Installation
+
+```bash
+# Clone and install
+git clone https://github.com/skillrc/opencode-session-journal.git
+cd opencode-session-journal
 ./install.sh
 ```
 
-If you are viewing this project remotely or via a downloaded archive, first clone the repository or download and unpack it, then run the installation script as above.
+**Requirements:**
+- Bash 4.0+
+- Python 3.6+ (for YAML processing)
+- OpenCode CLI
 
-Note: The repository includes MVP runtime scaffolding for session journaling. Runtime helpers live under:
-- opencode-session-journal/scripts/generate-journal-path.sh
-- opencode-session-journal/scripts/write-journal.sh
-- opencode-session-journal/scripts/load-journal.sh
-These MVP scripts are intended to be wired into lightweight CLI wrappers (to be added) and wired by the install.sh script into your OpenCode environment. See the new Runtime MVP section below for details.
+---
 
+## 📊 Comparison
 
-### Usage
+| Feature | Session Journal | brewcode | subcog | claude-code-soul |
+|---------|----------------|----------|--------|------------------|
+| **Commands** | 6 | 15+ | 10+ | Auto |
+| **Setup** | Zero | Complex | DB required | Git hooks |
+| **Control** | Manual | Manual | Manual | Automatic |
+| **Format** | Markdown | JSON+DB | SQLite | Markdown |
+| **Dependencies** | Python, Bash | Node.js, DB | Python, SQLite | Git |
+| **Philosophy** | Correct architecture | Feature-rich | Data-driven | Hands-off |
 
-**Save your session:**
+**Why Session Journal?**
+- ✅ **Correct execution model**: AI generates, scripts write
+- ✅ **Data integrity**: `content_complete` validation gate
+- ✅ **Zero setup**: No databases, minimal dependencies
+- ✅ **Full control**: You decide when to save/learn/profile
+- ✅ **Human readable**: Plain markdown, editable
+
+---
+
+## 📝 Journal Format
+
+```markdown
+---
+session_id: ses_abc123
+timestamp: 1741234567
+datetime: 2026-03-14 10:30:00
+duration_minutes: 45
+content_complete: true
+
+tags:
+  auto: [auth, jwt, security]
+  user: [important]
+  confidence: 0.92
+
+topics:
+  primary: authentication
+  secondary: [security, api-design]
+  confidence: 0.88
+
+categories:
+  domain: backend
+  type: feature-implementation
+  complexity: medium
+  phase: implementation
+
+summary: |
+  Implemented JWT authentication with refresh tokens.
+  Chose jose over jsonwebtoken for better TypeScript support.
+
+patterns_detected:
+  - id: research-before-implement
+    description: Researched libraries before coding
+    confidence: 0.85
+
+preferences_observed:
+  - id: security-over-convenience
+    description: Prioritizes security even when complex
+    confidence: 0.90
+
+links:
+  related_sessions: []
+  related_skills: []
+  related_files:
+    - src/middleware/auth.ts
+
+learned: false
+profiled: false
+---
+
+# Session Journal - ses_abc123
+
+**Start Time**: 2026-03-14 10:30:00
+**Task**: Implement JWT authentication
+
+---
+
+## Session Timeline
+
+### 🎯 Started Task: JWT Auth
+- **User Request**: Add JWT authentication to API
+- **Initial State**: No auth system
+- **Plan**: Research → Implement → Test
+
+### 🔧 Action: Research libraries
+- Compared jose vs jsonwebtoken
+- Chose jose for TypeScript support
+
+### ✅ Completed: JWT Implementation
+- Access tokens: 15min expiry
+- Refresh tokens: 7 day expiry
+- httpOnly cookies for XSS protection
+
+---
+
+## 📊 Session Summary
+
+### Completed Work
+1. ✅ Implemented JWT authentication
+2. ✅ Added refresh token rotation
+3. ✅ Configured httpOnly cookies
+
+### Problems Solved
+- JavaScript library vs TypeScript library → Chose jose
+
+### Key Decisions
+- Security > convenience: httpOnly despite complexity
+
+### Current State
+- Auth system running on port 8080
+- All tests passing
+
+### Pending Tasks
+- [ ] Test edge cases
+- [ ] Document API
+
+### Important Files
+- `src/middleware/auth.ts`
+- `src/routes/auth.ts`
+
+### Recommendations for Next Session
+1. Test token expiration edge cases
+2. Add rate limiting
+
+---
+
+**Session End Time**: 2026-03-14 11:15:00
+**Total Duration**: 45 minutes
+```
+
+---
+
+## 🔍 Use Cases
+
+### Multi-Day Project
+```
+Day 1: Research → /session-journal-save
+Day 2: /session-journal-load → Implement → /session-journal-save
+Day 3: /session-journal-load → Test → /session-journal-save
+Day 4: /session-journal-load → Deploy
+```
+
+### Context Recovery
+```
+Session 1: 80% context used → /session-journal-save
+Session 2: /session-journal-load → Continue → /session-journal-save
+Session 3: /session-journal-load → Finish
+```
+
+### Knowledge Building
+```
+After 10 sessions:
+→ /session-journal-profile (builds your profile)
+→ /session-journal-learn (extracts reusable patterns)
+→ /session-journal-search --tags "auth" (finds past work)
+```
+
+---
+
+## 🧪 Testing
+
 ```bash
-/session-journal-save
-# or with a note
-/session-journal-save "Completed WeBank SDK integration"
-```
+# Run verification
+/session-journal-verify
 
-**Load previous session:**
-```bash
-/session-journal-load              # Load most recent
-/session-journal-load 2026-03-09   # Load specific date
-/session-journal-load list         # List all logs
-```
+# Check specific journal
+~/.config/opencode/skills/opencode-session-journal/scripts/verify-journals.sh
 
-**Build profile (MVP):**
-```bash
-/session-journal-profile
-/session-journal-profile --show
-```
- 
-**Search journals:**
-
-**Search journals:**
-```bash
-/session-journal-search --tags "auth,security"
-/session-journal-search --topic "session-memory"
-```
-
-## How It Works
-
-1. **During your session**, work normally with OpenCode
-2. **When ready to save**, let the current AI session generate a complete journal in-context
-3. **The writer script** saves only journals marked `content_complete: true`
-4. **In a new session**, run `/session-journal-load` to restore context
-5. **Use profile/search/learn** to turn journals into memory artifacts
-
-## Log Format
-
-Logs are saved to `.opencode/session-journals/` with org-roam-inspired structure:
-
-```
-.opencode/session-journals/
-  year-2026-Horse/
-    month-03-March/
-      day-09-Monday/
-        journal-1741234567-02:16:45.md
-        journal-1741245678-14:30:22.md
-      day-10-Tuesday/
-        journal-1741334567-09:15:30.md
-```
-
-**Directory format:**
-- `year-YYYY-Zodiac` - Year with Chinese zodiac animal
-- `month-MM-MonthName` - Month number and full name
-- `day-DD-Weekday` - Day number and weekday name
-- `journal-{timestamp}-{HH:MM:SS}.md` - Unix timestamp + time
-
-**Each complete journal contains:**
-- Session metadata (ID, start time, task description)
-- `content_complete: true` in frontmatter
-- Timestamped action timeline
-- Problems encountered and solutions
-- Key decisions and rationale
-- Current state and next steps
-- Important files modified
-
-## Memory Layers
-
-### 1. Complete Journal
-The source of truth. Contains the real timeline, decisions, outcomes, and metadata.
-
-### 2. User Profile
-Built from complete journals only. Tracks preferences, workflows, and decision patterns.
-
-### 3. Learned Artifacts
-Derived from complete journals to capture reusable heuristics and workflows.
-
-### 4. Knowledge Graph
-Local JSON indexes (`tags.json`, `topics.json`, `links.json`) for fast retrieval.
-
-## Important Architecture Rule
-
-`/session-journal-save` must be executed in-context.
-
-- The current AI session generates the journal body and metadata.
-- Shell scripts must not attempt to reconstruct the true conversation body.
-- Incomplete journals must not enter profile or learning pipelines.
-
-## Use Cases
-
-### Multi-Day Projects
-```
-Day 1: Integrate WeBank SDK → /session-journal-save
-Day 2: /session-journal-load → Continue testing → /session-journal-save
-Day 3: /session-journal-load → Deploy to production
-```
-
-### Context Management
-```
-Session 1: Research phase (80% context used) → /session-journal-save
-Session 2: /session-journal-load → Implementation phase → /session-journal-save
-Session 3: /session-journal-load → Testing and documentation
-```
-
-### Team Handoffs
-```
-Developer A: Complete feature → /session-journal-save "Ready for review"
-Developer B: /session-journal-load → Review and test → /session-journal-save "Deployed"
-```
-
-## Testing
-
-This project follows Test-Driven Development (TDD) methodology with comprehensive test coverage.
-
-### Running Tests
-
-```bash
-# Run all tests
+# Test all commands
 ./tests/run_tests.sh
-
-# Run with coverage report
-./tests/run_tests.sh --coverage
-
-# Run specific test suite
-./tests/test_path_generation.sh
-./tests/test_save_command.sh
-./tests/test_load_command.sh
 ```
 
-### Test Coverage
+---
 
-- **42 tests** across 5 test suites
-- **95%+ coverage** (exceeds 80% goal)
-- **100% pass rate**
+## 📄 License
 
-Test suites:
-- Path Generation (10 tests)
-- File Operations (8 tests)
-- Save Command (8 tests)
-- Load Command (8 tests)
-- E2E Workflows (8 tests)
+MIT License - see [LICENSE](LICENSE)
 
-See [tests/TEST_REPORT.md](tests/TEST_REPORT.md) for detailed test results.
+---
 
-## Contributing
+<div align="center">
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+**⭐ Star this repo if you find it useful! ⭐**
 
-All contributions must include tests. Run `./tests/run_tests.sh` before submitting.
+*Built with the principle: AI understands, scripts write, memory persists.*
 
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
--## Runtime MVP wiring map
--The repository includes MVP runtime scaffolding for journaling. MVP helpers live under opencode-session-journal/scripts and are intended to form the core of a runnable journaling workflow once lightweight CLI wrappers are wired by install.sh.
--MVP scripts present:
--  - opencode-session-journal/scripts/generate-journal-path.sh
--  - opencode-session-journal/scripts/write-journal.sh
--  - opencode-session-journal/scripts/load-journal.sh
--Wrappers wired into the OpenCode environment (via install.sh):
--  - opencode-session-journal/commands/session-journal-load.sh
--  - opencode-session-journal/commands/session-journal-save.sh
--  - opencode-session-journal/commands/session-journal-profile.sh
--  - opencode-session-journal/commands/session-journal-search.sh
--Status: End-to-end wrappers exist for Load/Save and lightweight wrappers for Profile/Search; underlying MVP runtimes for profile/search are placeholders until their runtime scripts are added. install.sh wires the available wrappers and makes them executable.
--
--Local installation note
-- Run ./install.sh after cloning to wire the docs and the MVP runtime scaffolding into your OpenCode environment.
-
-### Wrapper wiring status (Runtime MVP)
-- session-journal-load.sh: shipped and wired by install.sh; calls opencode-session-journal/scripts/load-journal.sh
-- session-journal-save.sh: shipped and wired by install.sh; pipes content to opencode-session-journal/scripts/write-journal.sh
-- session-journal-profile.sh: wrapper present; wired to opencode-session-journal/scripts/analyze-profile.sh (MVP) or stub if analyze-profile.sh is not present yet
-- session-journal-search.sh: wrapper present; wired to opencode-session-journal/scripts/search-journals.sh (MVP) or stub if search-journals.sh is not present yet
-- MVP scripts in repo:
-  - opencode-session-journal/scripts/generate-journal-path.sh
-  - opencode-session-journal/scripts/write-journal.sh
-  - opencode-session-journal/scripts/load-journal.sh
-
-> Current state: End-to-end CLI wrappers exist for Load/Save and lightweight wrappers for Profile/Search are provided, but the underlying MVP runtimes for profile/search may be placeholders until the corresponding runtime scripts are added. install.sh wires the available wrappers and makes them executable.
-
-**Star this repo if you find it useful! ⭐**
-
-## Runtime MVP wiring map (final)
-The OpenCode Session Journal MVP wiring plan focuses on a minimal, end-to-end flow for saving and loading journals, with placeholders for profiling and search learnings.
-- Wrappers on disk (installed by the installer):
-  - session-journal-load.sh
-  - session-journal-save.sh
-  - session-journal-profile.sh
-  - session-journal-search.sh
-- MVP script paths present in repo:
-  - opencode-session-journal/scripts/generate-journal-path.sh
-  - opencode-session-journal/scripts/write-journal.sh
-  - opencode-session-journal/scripts/load-journal.sh
-- Wiring model:
-  - installer (install.sh) copies wrappers into OPENCODE_DIR/commands and marks them executable
-  - Profile/Search wrappers currently route to MVP backends not yet implemented
-- MVP state:
-  - Load and Save wrappers wired; load prints latest journal, save writes a new journal
-  - Profile/Search wrappers exist as scaffolds; their backends (analyze-profile.sh, search-journals.sh) are not included yet
-- MVP flow example:
-  - session-journal-load.sh -> load-journal.sh
-
--## Runtime MVP wiring map (final)
-The MVP wiring plan for OpenCode Session Journal focuses on a minimal end-to-end flow for saving and loading journals, with explicit exposure of wrappers and MVP runtime scripts.
-
-- Wrappers on disk (installed by installer):
-  - session-journal-load.sh
-  - session-journal-save.sh
-  - session-journal-profile.sh
-  - session-journal-search.sh
-- MVP script paths present in repo:
-  - opencode-session-journal/scripts/generate-journal-path.sh
-  - opencode-session-journal/scripts/write-journal.sh
-  - opencode-session-journal/scripts/load-journal.sh
-- Wiring model (installer behavior):
-  - install.sh copies wrappers into OPENCODE_DIR/commands and marks them executable
-- MVP state:
-  - Load/Save wrappers wired; load prints latest journal, save writes a new journal
-  - Profile/Search wrappers exist as scaffolds; backends (analyze-profile.sh, search-journals.sh) are not included yet
-- MVP flow example:
-  - session-journal-load.sh -> load-journal.sh
-
-## Phase 1 MVP Wiring Snapshot (Current)
-- Wrappers present and wired by installer:
-  - session-journal-load.sh
-  - session-journal-save.sh
-  - session-journal-profile.sh
-  - session-journal-search.sh
-- MVP backends:
-  - analyze-profile.sh (stub)
-  - search-journals.sh (stub)
-- MVP scripts present in repo:
-  - opencode-session-journal/scripts/generate-journal-path.sh
-  - opencode-session-journal/scripts/write-journal.sh
-  - opencode-session-journal/scripts/load-journal.sh
-- Status: End-to-end CLI wrappers exist for Load/Save; Profile/Search wrappers route to stubs.
-- Next phases:
-  - Phase 2: replace stubs with real MVP backends and expand tests
-  - Phase 3: CI integration and final README polish
- 
-## Phase alignment audit and notes
-- This README reflects Phase 1 MVP reality (4 wrappers wired; Learn not wired). A future Phase-2 update will replace stub backends with real MVP implementations for analyze-profile and search-journals, and add Phase-2 tests and CI.
-- Known mismatches to resolve in a canonical Phase-1 README:
-  - Learn wrapper referenced in Quick Start but not wired in Phase 1; the MVP narrative should either wire a minimal learn wrapper or explicitly remove Learn from Phase 1 MVP scope.
-  - Duplicated/multiple sections titled ‘Runtime MVP wiring map’ that may confuse readers about the canonical Phase state. A single, clean Phase 1 section is preferred.
-- Refer to REPO_FINDINGS.md for a comprehensive gap log and explicit TODOs.
-
-## Discrepancies and Next Steps
-- This section now describes the final MVP wiring map and notes remaining work
-- The final README patch should reflect explicit mapping and indicate that Profile/Search backends are pending
-- This repository documents MVP runtime scaffolding and a local install flow. To ensure clarity for readers and contributors, we should explicitly map which wrappers exist and whether they are wired by the installer, and distinguish MVP scaffolds from a fully production-ready end-to-end CLI.
-- Current plan for the README: add a compact MVP wiring map that lists:
-  - Wrapper names and paths: session-journal-load.sh, session-journal-save.sh, session-journal-profile.sh, session-journal-search.sh
-  - MVP script paths: generate-journal-path.sh, write-journal.sh, load-journal.sh
-  - Wiring status: install.sh behavior, where wrappers land post-install, and note which wrappers are fully wired vs. still placeholders for profile/search.
-- The end-to-end CLI surface for profile/search remains MVP scaffolding until their runtime wrappers are implemented; this should be stated clearly in the README to avoid misunderstanding.
-
-- Note: For a clean canonical Phase-1 state and the Phase-2 plan, refer to REPO_FINDINGS.md.
-- Phase alignment audit (README vs repo state)
-- Wrappers wired (Load, Save, Profile, Search) exist in opencode-session-journal/commands and wired by install.sh.
-- Learn wrapper: not wired in Phase 1; README now clarifies MVP scope.
-- Phase-1 readme duplication: removed in favor of a single Phase-1 narrative; REPO_FINDINGS.md holds the canonical gap log.
-- Zodiac/path references are consistent with the existing code (Horse for 2026 in the examples).
-- See REPO_FINDINGS.md for deeper phase 2 planning and gaps.
+</div>
